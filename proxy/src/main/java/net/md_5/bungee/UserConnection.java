@@ -199,7 +199,7 @@ public final class UserConnection implements ProxiedPlayer
     @Override
     public void setDisplayName(String name)
     {
-        Preconditions.checkNotNull( name, "displayName" );
+        Preconditions.checkArgument( name.length() <= 16, "Display name cannot be longer than 16 characters" ); // Travertine
         displayName = name;
     }
 
@@ -422,7 +422,7 @@ public final class UserConnection implements ProxiedPlayer
     public void sendMessage(ChatMessageType position, BaseComponent... message)
     {
         // Action bar doesn't display the new JSON formattings, legacy works - send it using this for now
-        if ( position == ChatMessageType.ACTION_BAR )
+        if ( position == ChatMessageType.ACTION_BAR && getPendingConnection().getVersion() >= ProtocolConstants.MINECRAFT_1_8 ) // Travertine
         {
             sendMessage( position, ComponentSerializer.toString( new TextComponent( BaseComponent.toLegacyText( message ) ) ) );
         } else
@@ -435,7 +435,7 @@ public final class UserConnection implements ProxiedPlayer
     public void sendMessage(ChatMessageType position, BaseComponent message)
     {
         // Action bar doesn't display the new JSON formattings, legacy works - send it using this for now
-        if ( position == ChatMessageType.ACTION_BAR )
+        if ( position == ChatMessageType.ACTION_BAR && getPendingConnection().getVersion() >= ProtocolConstants.MINECRAFT_1_8 ) // Travertine
         {
             sendMessage( position, ComponentSerializer.toString( new TextComponent( BaseComponent.toLegacyText( message ) ) ) );
         } else
@@ -616,6 +616,7 @@ public final class UserConnection implements ProxiedPlayer
     @Override
     public void setTabHeader(BaseComponent header, BaseComponent footer)
     {
+        if ( ProtocolConstants.isBeforeOrEq( pendingConnection.getVersion(), ProtocolConstants.MINECRAFT_1_7_6 ) ) return; // Travertine
         unsafe().sendPacket( new PlayerListHeaderFooter(
                 ( header != null ) ? ComponentSerializer.toString( header ) : EMPTY_TEXT,
                 ( footer != null ) ? ComponentSerializer.toString( footer ) : EMPTY_TEXT
@@ -625,6 +626,7 @@ public final class UserConnection implements ProxiedPlayer
     @Override
     public void setTabHeader(BaseComponent[] header, BaseComponent[] footer)
     {
+        if ( ProtocolConstants.isBeforeOrEq( pendingConnection.getVersion(), ProtocolConstants.MINECRAFT_1_7_6 ) ) return; // Travertine
         unsafe().sendPacket( new PlayerListHeaderFooter(
                 ( header != null ) ? ComponentSerializer.toString( header ) : EMPTY_TEXT,
                 ( footer != null ) ? ComponentSerializer.toString( footer ) : EMPTY_TEXT
@@ -651,6 +653,7 @@ public final class UserConnection implements ProxiedPlayer
 
     public void setCompressionThreshold(int compressionThreshold)
     {
+        if ( ProtocolConstants.isBeforeOrEq( pendingConnection.getVersion(), ProtocolConstants.MINECRAFT_1_7_6 ) ) return; // Travertine
         if ( !ch.isClosing() && this.compressionThreshold == -1 && compressionThreshold >= 0 )
         {
             this.compressionThreshold = compressionThreshold;
